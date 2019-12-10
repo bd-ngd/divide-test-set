@@ -26,7 +26,7 @@ public class IntentSampleListener extends AnalysisEventListener<IntentSampleDTO>
      */
     private static final int BATCH_COUNT = 1000;
     //存放意图名称
-    private List<IntentNameDTO> nameList;
+    private List<String> nameList;
     //存放全部意图示例
     private List<List<IntentSampleDTO>> allList;
     //存放90%部分意图示例
@@ -44,7 +44,10 @@ public class IntentSampleListener extends AnalysisEventListener<IntentSampleDTO>
      * @param list<IntentNameDTO>
      */
     public IntentSampleListener(List<IntentNameDTO> list) {
-        this.nameList = list;
+        nameList = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            nameList.add(list.get(i).getId());
+        }
         allList = new ArrayList<>(list.size());
         ninetyList = new ArrayList<>(list.size());
         tenList = new ArrayList<>(list.size());
@@ -64,7 +67,14 @@ public class IntentSampleListener extends AnalysisEventListener<IntentSampleDTO>
      */
     @Override
     public void invoke(IntentSampleDTO data, AnalysisContext context) {
-
+        //根据ID判断序列号
+        Integer index = nameList.indexOf(data.getId());
+        //添加至allList对应序列号中
+        if (index > -1){
+            allList.get(index).add(data);
+        }else {
+            LOGGER.error("{} 的意图ID不在列表中");
+        }
     }
 
     /**
@@ -74,7 +84,41 @@ public class IntentSampleListener extends AnalysisEventListener<IntentSampleDTO>
      */
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {
+        //遍历allLIst
+        List<IntentSampleDTO> listSubNine = new ArrayList<>();
+        List<IntentSampleDTO> listSubTen = new ArrayList<>();
+        //对每个子List进行划分
+        for (int i = 0; i < allList.size(); i++) {
+            Integer ten = allList.size() / 10;
+            listSubTen = allList.get(i).subList(0, ten);
+            tenList.get(i).addAll(listSubTen);
+            listSubNine = allList.get(i).subList(ten, allList.size());
+            ninetyList.get(i).addAll(listSubNine);
+        }
+    }
 
+    /**
+     *返回10%部分的数据
+     * @return
+     */
+    public List<IntentSampleDTO> getTen(){
+        List<IntentSampleDTO> list = new ArrayList<>();
+        for (int i = 0; i < tenList.size(); i++) {
+            list.addAll(tenList.get(i));
+        }
+        return list;
+    }
+
+    /**
+     * 返回90%部分的数据
+     * @return
+     */
+    public List<IntentSampleDTO> getNinety(){
+        List<IntentSampleDTO> list = new ArrayList<>();
+        for (int i = 0; i < ninetyList.size(); i++) {
+            list.addAll(ninetyList.get(i));
+        }
+        return list;
     }
 
 

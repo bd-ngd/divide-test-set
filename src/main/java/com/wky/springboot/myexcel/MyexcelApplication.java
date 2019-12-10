@@ -9,7 +9,9 @@ public class MyexcelApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(MyexcelApplication.class, args);
-        IntentSampleDAO.saveToExcel(IntentSampleDAO.readFromExcel());
+        IntentSampleDAO.readFromExcel();
+        IntentSampleDAO.saveToExcelTen();
+        IntentSampleDAO.saveToExcelTen();
     }
 
 }

@@ -1,8 +1,11 @@
 package com.wky.springboot.myexcel.dao;
 
 import com.alibaba.excel.EasyExcel;
+import com.wky.springboot.myexcel.dto.IntentNameDTO;
 import com.wky.springboot.myexcel.dto.IntentSampleDTO;
+import com.wky.springboot.myexcel.dto.IntentTemplateDTO;
 import com.wky.springboot.myexcel.lisenter.IntentSampleListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,6 +18,9 @@ import java.util.List;
  */
 @Component
 public class IntentSampleDAO {
+    private static List<IntentSampleDTO> outTen;
+    private static List<IntentSampleDTO> outNinety;
+
     public void save(List<IntentSampleDTO> list){
         ;
     }
@@ -30,16 +36,26 @@ public class IntentSampleDAO {
         // 写法1 -- 项目同级目录：
         String fileName = "in.xlsx";
         // 这里 需要指定读用哪个class去读，然后默认读取第一个sheet 文件流会自动关闭
-        IntentSampleListener demoDataListener = new IntentSampleListener();
-        EasyExcel.read(fileName, IntentSampleDTO.class, demoDataListener).sheet().doRead();
-
+        IntentSampleListener listener = new IntentSampleListener(IntentNameDAO.readFromExcel());
+        EasyExcel.read(fileName, IntentSampleDTO.class, listener).sheet(2).doRead();
+        outTen = listener.getTen();
+        outNinety = listener.getNinety();
         return null;
     }
 
-    public static void saveToExcel(List<IntentSampleDTO> list){
-        String fileName = "out.xlsx";
+    public static void saveToExcelTen(){
+        String fileName = "out1.xlsx";
         // 这里 需要指定写用哪个class去写，然后写到第一个sheet(从0开始)，名字为sheel1 然后文件流会自动关闭
-        EasyExcel.write(fileName, IntentSampleDTO.class).sheet(0,"sheel1").doWrite(list);
+        EasyExcel.write(fileName, IntentNameDTO.class).sheet(0,"意图").doWrite(IntentNameDAO.readFromExcel());
+        EasyExcel.write(fileName, IntentSampleDTO.class).sheet(1,"意图示例").doWrite(outTen);
+        EasyExcel.write(fileName, IntentTemplateDTO.class).sheet(2,"意图模板").doWrite(null);
     }
+
+    public static void saveToExcelNinety(){
+        String fileName = "out9.xlsx";
+        // 这里 需要指定写用哪个class去写，然后写到第一个sheet(从0开始)，名字为sheel1 然后文件流会自动关闭
+        EasyExcel.write(fileName, IntentNameDTO.class).sheet(0,"意图").doWrite(IntentNameDAO.readFromExcel());
+        EasyExcel.write(fileName, IntentSampleDTO.class).sheet(1,"意图示例").doWrite(outNinety);
+        EasyExcel.write(fileName, IntentTemplateDTO.class).sheet(2,"意图模板").doWrite(null);    }
 
 }
