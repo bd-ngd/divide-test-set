@@ -1,0 +1,9 @@
+logging:
+  level:
+    org.*: error
+    com.*: error
+    com:
+      wky:
+        springboot:
+          myexcel:
+            lisenter: info
