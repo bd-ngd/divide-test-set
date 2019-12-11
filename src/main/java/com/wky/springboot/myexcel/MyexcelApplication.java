@@ -11,7 +11,7 @@ public class MyexcelApplication {
         SpringApplication.run(MyexcelApplication.class, args);
         IntentSampleDAO.readFromExcel();
         IntentSampleDAO.saveToExcelTen();
-        IntentSampleDAO.saveToExcelTen();
+        IntentSampleDAO.saveToExcelNinety();
     }
 
 }

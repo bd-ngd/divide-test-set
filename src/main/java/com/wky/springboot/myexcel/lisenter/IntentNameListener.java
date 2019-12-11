@@ -2,7 +2,6 @@ package com.wky.springboot.myexcel.lisenter;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.wky.springboot.myexcel.dao.IntentSampleDAO;
 import com.wky.springboot.myexcel.dto.IntentNameDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +17,9 @@ import java.util.List;
  */
 public class IntentNameListener extends AnalysisEventListener<IntentNameDTO> {
     private static final Logger LOGGER = LoggerFactory.getLogger(IntentNameListener.class);
-    /**
-     * 每隔5条存储数据库，实际使用中可以3000条，然后清理list ，方便内存回收
-     */
-    private static final int BATCH_COUNT = 1000;
-    private List<IntentNameDTO> nameList = new ArrayList<IntentNameDTO>();
-    /**
-     * 假设这个是一个DAO，当然有业务逻辑这个也可以是一个service。当然如果不用存储这个对象没用。
-     */
-    private IntentSampleDAO demoDAO;
+
+    private List<IntentNameDTO> list = new ArrayList<IntentNameDTO>();
+
 
     public IntentNameListener() {
 
@@ -41,7 +34,7 @@ public class IntentNameListener extends AnalysisEventListener<IntentNameDTO> {
      */
     @Override
     public void invoke(IntentNameDTO data, AnalysisContext context) {
-        nameList.add(data);
+        list.add(data);
     }
 
     /**
@@ -51,13 +44,14 @@ public class IntentNameListener extends AnalysisEventListener<IntentNameDTO> {
      */
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {
-        // 这里也要保存数据，确保最后遗留的数据也存储到数据库
-        LOGGER.info("意图名称解析完成！一共读取到 {} 条意图名称",nameList.size());
+        if(list.size() > 0){
+            LOGGER.info("一共读取到 {} 条意图名称",list.size());
+        }
     }
 
 
     public List<IntentNameDTO> getAllList(){
-        return nameList;
+        return list;
     }
 
 }

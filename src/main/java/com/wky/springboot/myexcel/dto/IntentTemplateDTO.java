@@ -1,6 +1,8 @@
 package com.wky.springboot.myexcel.dto;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.write.style.ColumnWidth;
+import com.alibaba.excel.annotation.write.style.HeadRowHeight;
 import lombok.Data;
 
 /**
@@ -10,6 +12,8 @@ import lombok.Data;
  * @Version： 1.0
  */
 @Data
+@HeadRowHeight(15)
+@ColumnWidth(25)
 public class IntentTemplateDTO {
     @ExcelProperty(value = "意图ID", index = 0)
     private String id;

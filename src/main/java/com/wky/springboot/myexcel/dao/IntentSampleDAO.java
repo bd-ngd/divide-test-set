@@ -1,13 +1,15 @@
 package com.wky.springboot.myexcel.dao;
 
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.write.metadata.WriteSheet;
 import com.wky.springboot.myexcel.dto.IntentNameDTO;
 import com.wky.springboot.myexcel.dto.IntentSampleDTO;
 import com.wky.springboot.myexcel.dto.IntentTemplateDTO;
 import com.wky.springboot.myexcel.lisenter.IntentSampleListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,42 +22,65 @@ import java.util.List;
 public class IntentSampleDAO {
     private static List<IntentSampleDTO> outTen;
     private static List<IntentSampleDTO> outNinety;
-
-    public void save(List<IntentSampleDTO> list){
-        ;
-    }
+    private static List<IntentNameDTO> nameDTOList;
+    private static List<IntentTemplateDTO> templateDTOList;
 
     /**
-     * 最简单的读
-     * <p>1. 创建excel对应的实体对象 参照{@link IntentSampleDTO}
-     * <p>2. 由于默认一行行的读取excel，所以需要创建excel一行一行的回调监听器，参照{@link IntentSampleListener}
-     * <p>3. 直接读即可
+     * 读取数据
      */
     public static List<IntentSampleDTO> readFromExcel(){
-// 有个很重要的点 DemoDataListener 不能被spring管理，要每次读取excel都要new,然后里面用到spring可以构造方法传进去
-        // 写法1 -- 项目同级目录：
         String fileName = "in.xlsx";
-        // 这里 需要指定读用哪个class去读，然后默认读取第一个sheet 文件流会自动关闭
-        IntentSampleListener listener = new IntentSampleListener(IntentNameDAO.readFromExcel());
-        EasyExcel.read(fileName, IntentSampleDTO.class, listener).sheet(2).doRead();
+        //获取意图名称&ID列表
+        nameDTOList = IntentNameDAO.readFromExcel();
+        //获取意图模板列表
+        templateDTOList = IntentTemplateDAO.readFromExcel();
+        // 读取意图示例
+        IntentSampleListener listener = new IntentSampleListener(nameDTOList);
+        EasyExcel.read(fileName, IntentSampleDTO.class, listener).sheet(1).doRead();
+        //获取划分的测试集与训练集
         outTen = listener.getTen();
         outNinety = listener.getNinety();
         return null;
     }
 
+    /**
+     * 写测试集
+     */
     public static void saveToExcelTen(){
         String fileName = "out1.xlsx";
-        // 这里 需要指定写用哪个class去写，然后写到第一个sheet(从0开始)，名字为sheel1 然后文件流会自动关闭
-        EasyExcel.write(fileName, IntentNameDTO.class).sheet(0,"意图").doWrite(IntentNameDAO.readFromExcel());
-        EasyExcel.write(fileName, IntentSampleDTO.class).sheet(1,"意图示例").doWrite(outTen);
-        EasyExcel.write(fileName, IntentTemplateDTO.class).sheet(2,"意图模板").doWrite(null);
+        // 构建写工具实例
+        ExcelWriter excelWriter = EasyExcel.write(fileName).build();
+        // 写第一个sheet页
+        WriteSheet writeSheet = EasyExcel.writerSheet(0,"意图").head(IntentNameDTO.class).build();
+        excelWriter.write(nameDTOList, writeSheet);
+        // 写第二个sheet页
+        WriteSheet writeSheet1 = EasyExcel.writerSheet(1,"意图示例").head(IntentSampleDTO.class).build();
+        excelWriter.write(outTen, writeSheet1);
+        // 写第三个sheet页
+        WriteSheet writeSheet2 = EasyExcel.writerSheet(2,"意图模板").head(IntentTemplateDTO.class).build();
+        excelWriter.write(templateDTOList, writeSheet2);
+        //关闭流
+        excelWriter.finish();
     }
 
+    /**
+     * 写训练集
+     */
     public static void saveToExcelNinety(){
         String fileName = "out9.xlsx";
-        // 这里 需要指定写用哪个class去写，然后写到第一个sheet(从0开始)，名字为sheel1 然后文件流会自动关闭
-        EasyExcel.write(fileName, IntentNameDTO.class).sheet(0,"意图").doWrite(IntentNameDAO.readFromExcel());
-        EasyExcel.write(fileName, IntentSampleDTO.class).sheet(1,"意图示例").doWrite(outNinety);
-        EasyExcel.write(fileName, IntentTemplateDTO.class).sheet(2,"意图模板").doWrite(null);    }
+        // 构建写工具实例
+        ExcelWriter excelWriter = EasyExcel.write(fileName).build();
+        // 写第一个sheet页
+        WriteSheet writeSheet = EasyExcel.writerSheet(0,"意图").head(IntentNameDTO.class).build();
+        excelWriter.write(nameDTOList, writeSheet);
+        // 写第二个sheet页
+        WriteSheet writeSheet1 = EasyExcel.writerSheet(1,"意图示例").head(IntentSampleDTO.class).build();
+        excelWriter.write(outNinety, writeSheet1);
+        // 写第三个sheet页
+        WriteSheet writeSheet2 = EasyExcel.writerSheet(2,"意图模板").head(IntentTemplateDTO.class).build();
+        excelWriter.write(templateDTOList, writeSheet2);
+        //关闭流
+        excelWriter.finish();
+    }
 
 }

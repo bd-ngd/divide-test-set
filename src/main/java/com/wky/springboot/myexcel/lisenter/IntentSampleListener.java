@@ -2,16 +2,13 @@ package com.wky.springboot.myexcel.lisenter;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.wky.springboot.myexcel.dao.IntentSampleDAO;
 import com.wky.springboot.myexcel.dto.IntentNameDTO;
 import com.wky.springboot.myexcel.dto.IntentSampleDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @Description:
@@ -21,10 +18,7 @@ import java.util.Set;
  */
 public class IntentSampleListener extends AnalysisEventListener<IntentSampleDTO> {
     private static final Logger LOGGER = LoggerFactory.getLogger(IntentSampleListener.class);
-    /**
-     * 每隔5条存储数据库，实际使用中可以3000条，然后清理list ，方便内存回收
-     */
-    private static final int BATCH_COUNT = 1000;
+
     //存放意图名称
     private List<String> nameList;
     //存放全部意图示例
@@ -73,7 +67,7 @@ public class IntentSampleListener extends AnalysisEventListener<IntentSampleDTO>
         if (index > -1){
             allList.get(index).add(data);
         }else {
-            LOGGER.error("{} 的意图ID不在列表中");
+            LOGGER.error("[{}，{}]的意图ID不在列表中",data.getId(),data.getShiLi());
         }
     }
 
@@ -84,17 +78,40 @@ public class IntentSampleListener extends AnalysisEventListener<IntentSampleDTO>
      */
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {
-        //遍历allLIst
-        List<IntentSampleDTO> listSubNine = new ArrayList<>();
-        List<IntentSampleDTO> listSubTen = new ArrayList<>();
+        Integer allSize = 0;
+        for (int i = 0; i < allList.size(); i++) {
+            allSize += allList.get(i).size();
+        }
+        if(allSize > 0){
+            LOGGER.info("一共读取到 {} 条意图示例",allSize);
+        }
         //对每个子List进行划分
         for (int i = 0; i < allList.size(); i++) {
-            Integer ten = allList.size() / 10;
-            listSubTen = allList.get(i).subList(0, ten);
+            //遍历allLIst
+            List<IntentSampleDTO> listSubNine ;
+            List<IntentSampleDTO> listSubTen ;
+
+            //取单次子列表进行划分
+            List<IntentSampleDTO> perAllList = allList.get(i);
+
+            //判断本次子列表长度是否大于10个
+            Integer ten = perAllList.size() / 10;
+            if(ten < 1){
+                ten = 1;
+            }
+
+            //判断子列表是否大于2个
+            if(perAllList.size() > 2){
+                listSubTen = perAllList.subList(0, ten);
+                listSubNine = perAllList.subList(ten, allList.get(i).size());
+            }else {
+                listSubNine = perAllList;
+                listSubTen = new ArrayList<>();
+            }
             tenList.get(i).addAll(listSubTen);
-            listSubNine = allList.get(i).subList(ten, allList.size());
             ninetyList.get(i).addAll(listSubNine);
         }
+
     }
 
     /**
@@ -105,6 +122,9 @@ public class IntentSampleListener extends AnalysisEventListener<IntentSampleDTO>
         List<IntentSampleDTO> list = new ArrayList<>();
         for (int i = 0; i < tenList.size(); i++) {
             list.addAll(tenList.get(i));
+        }
+        if(list.size() > 0){
+            LOGGER.info("一共划分 {} 条测试集",list.size());
         }
         return list;
     }
@@ -117,6 +137,9 @@ public class IntentSampleListener extends AnalysisEventListener<IntentSampleDTO>
         List<IntentSampleDTO> list = new ArrayList<>();
         for (int i = 0; i < ninetyList.size(); i++) {
             list.addAll(ninetyList.get(i));
+        }
+        if(list.size() > 0){
+            LOGGER.info("一共划分 {} 条训练集",list.size());
         }
         return list;
     }
